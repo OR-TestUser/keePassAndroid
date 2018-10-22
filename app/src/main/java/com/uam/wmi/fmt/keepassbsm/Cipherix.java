@@ -1,5 +1,6 @@
 package com.uam.wmi.fmt.keepassbsm;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Xml;
 
@@ -12,39 +13,50 @@ import java.security.SecureRandom;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.
+
 
 public class Cipherix {
-    byte[] salt, firstHash;
-    MessageDigest md;
+    public static final int SALT_BYTE_SIZE = 24;
+
+    byte[] salt;
+    String firstHash;
+
+    // hexArr for getHash
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
 
     Cipherix(String plaintext) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 //        encrypt(plaintext.getBytes("UTF-8"));
         //Generate 64 byte salt
         SecureRandom random = new SecureRandom();
-        salt = new byte[256];
+        salt = new byte[SALT_BYTE_SIZE];
         random.nextBytes(salt);
-        md = MessageDigest.getInstance("SHA-256");
 
-        firstHash = saltyHashPLZ(plaintext);
+        firstHash = getHash(plaintext, salt);
     }
 
-    public boolean checkHashes(String plaintext) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        return saltyHashPLZ(plaintext).equals(firstHash);
+    public boolean checkHashes(String plaintext) throws NoSuchAlgorithmException {
+        return getHash(plaintext, salt).equals(firstHash);
     }
 
-    private byte[] saltyHashPLZ(String plaintext) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        Log.d("flaga   salt", salt.toString());
 
-        byte[] passwordBytes = plaintext.getBytes("UTF-8");
+    private static String getHash(String plaintext, byte[] salt) throws NoSuchAlgorithmException {
 
-        md.reset();
-        md.update(salt);
-        byte[] hashBytes = md.digest(passwordBytes);
-        Log.d("flaga return", String.valueOf(hashBytes));
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        digest.update(plaintext.getBytes());
 
-        return hashBytes;
+        byte[] messageDigest = digest.digest();
+
+        char[] hexChars = new char[messageDigest.length * 2];
+        for ( int j = 0; j < messageDigest.length; j++ ) {
+            int v = messageDigest[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+
+        return new String(hexChars);
     }
-
 
 
 

@@ -75,7 +75,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         try {
             Cipherix cipherix = new Cipherix("test");
             boolean one = cipherix.checkHashes("test");
-            boolean three = cipherix.checkHashes("test");
+            boolean three = cipherix.checkHashes("test2");
             boolean two = cipherix.checkHashes("razdwatrzy");
             Log.d("flaga1", String.valueOf(one));
             Log.d("flaga2", String.valueOf(two));

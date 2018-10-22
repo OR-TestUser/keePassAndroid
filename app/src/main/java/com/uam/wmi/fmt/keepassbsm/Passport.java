@@ -1,15 +1,24 @@
 package com.uam.wmi.fmt.keepassbsm;
 
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.util.Base64;
 import android.util.Log;
+
+import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+// https://developer.android.com/training/articles/keystore#javał
 
-public class Cipherix {
+
+public class Passport {
 
     public static final int SALT_BYTE_SIZE = 24;
     public static final int HASH_BYTE_SIZE = 18;
@@ -17,14 +26,10 @@ public class Cipherix {
 
     String firstHash;
 
-    // hexArr for getHash
-    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-
-    Cipherix(String plaintext) throws InvalidKeySpecException, NoSuchAlgorithmException {
+    Passport(String plaintext) throws InvalidKeySpecException, NoSuchAlgorithmException {
         firstHash = createHash(plaintext);
         Log.d("firstHash", firstHash);
-        Log.d("git?", " " + verifyPassword("test".toCharArray(), firstHash));
+        Log.d("shouldBe", " " + verifyPassword("test".toCharArray(), firstHash));
     }
 
     public static String createHash(String password) throws InvalidKeySpecException, NoSuchAlgorithmException { return createHash(password.toCharArray()); }
@@ -56,7 +61,6 @@ public class Cipherix {
 
         PBEKeySpec pbeKeySpec = new PBEKeySpec(password, salt, iterations, bytes * 8);
         SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2withHmacSHA256");
-
         return secretKeyFactory.generateSecret(pbeKeySpec).getEncoded();
     }
 
@@ -69,6 +73,7 @@ public class Cipherix {
         int storedHashSize = Integer.parseInt(params[2]);
         byte[] salt = fromBase64(params[3]);
         byte[] hash = fromBase64(params[4]);
+
 
         byte[] testHash = pbkdf2(password, salt, iterations, storedHashSize);
 
@@ -84,4 +89,29 @@ public class Cipherix {
 
         return Base64.encodeToString(array, Base64.DEFAULT);
     }
+
+
+
+
+    // KeyStore Try
+
+    public static void Nothing()
+            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+        KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",
+                KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setRandomizedEncryptionRequired(true)
+                .build();
+
+        keyGenerator.init(keyGenParameterSpec);
+        keyGenerator.generateKey();
+
+
+
+
+
+    }
+
 }

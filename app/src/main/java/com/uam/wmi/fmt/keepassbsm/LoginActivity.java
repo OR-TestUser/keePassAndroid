@@ -20,7 +20,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,7 +30,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -74,16 +72,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
         try {
-            Cipherix cipherix = new Cipherix("test");
-//            boolean one = cipherix.checkHashes("test");
-//            boolean three = cipherix.checkHashes("test2");
-//            boolean two = cipherix.checkHashes("razdwatrzy");
+            Passport passport = new Passport("test");
+//            boolean one = passport.checkHashes("test");
+//            boolean three = passport.checkHashes("test2");
+//            boolean two = passport.checkHashes("razdwatrzy");
 //            Log.d("flaga1", String.valueOf(one));
 //            Log.d("flaga2", String.valueOf(two));
 //            Log.d("flaga2*3", String.valueOf(three));
-
-
-
 
 
         } catch (NoSuchAlgorithmException e) {

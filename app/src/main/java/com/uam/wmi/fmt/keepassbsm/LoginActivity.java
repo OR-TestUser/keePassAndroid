@@ -33,6 +33,7 @@ import android.widget.TextView;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,23 +75,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         try {
             Cipherix cipherix = new Cipherix("test");
-            boolean one = cipherix.checkHashes("test");
-            boolean three = cipherix.checkHashes("test2");
-            boolean two = cipherix.checkHashes("razdwatrzy");
-            Log.d("flaga1", String.valueOf(one));
-            Log.d("flaga2", String.valueOf(two));
-            Log.d("flaga2*3", String.valueOf(three));
+//            boolean one = cipherix.checkHashes("test");
+//            boolean three = cipherix.checkHashes("test2");
+//            boolean two = cipherix.checkHashes("razdwatrzy");
+//            Log.d("flaga1", String.valueOf(one));
+//            Log.d("flaga2", String.valueOf(two));
+//            Log.d("flaga2*3", String.valueOf(three));
 
 
 
 
 
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
         }
-
 
 
         // Set up the login form.

@@ -72,7 +72,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
         try {
-            Passport passport = new Passport("test");
+            Passport passport = new Passport(getApplicationContext(),  "test");
 //            boolean one = passport.checkHashes("test");
 //            boolean three = passport.checkHashes("test2");
 //            boolean two = passport.checkHashes("razdwatrzy");

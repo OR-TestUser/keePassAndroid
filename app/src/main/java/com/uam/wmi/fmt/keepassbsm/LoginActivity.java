@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -70,24 +71,23 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
-        try {
-            Passport passport = new Passport(getApplicationContext(),  "test");
-//            boolean one = passport.checkHashes("test");
-//            boolean three = passport.checkHashes("test2");
-//            boolean two = passport.checkHashes("razdwatrzy");
-//            Log.d("flaga1", String.valueOf(one));
-//            Log.d("flaga2", String.valueOf(two));
-//            Log.d("flaga2*3", String.valueOf(three));
-
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Passport passport = new Passport(getApplicationContext(),"test");
+////            boolean one = passport.checkHashes("test");
+////            boolean three = passport.checkHashes("test2");
+////            boolean two = passport.checkHashes("razdwatrzy");
+////            Log.d("flaga1", String.valueOf(one));
+////            Log.d("flaga2", String.valueOf(two));
+////            Log.d("flaga2*3", String.valueOf(three));
+//
+//
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//        }
 
 
+        // Hide email text field
+        findViewById(R.id.email).setVisibility(View.GONE);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
@@ -109,6 +109,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 attemptLogin();
+            }
+        });
+
+        Button mClearButton = (Button) findViewById(R.id.clear_button);
+        mClearButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SPutils.purgeUserLocalStorage(getApplicationContext());
+                mPasswordView.setText("");
             }
         });
 
@@ -176,6 +185,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
+        email = "random@mail.com";
         String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
@@ -328,25 +338,36 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+            boolean pass = false;
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
+                Passport passport = new Passport(getApplicationContext(), mPassword);
+                pass = passport.isPass();
+            } catch (Throwable e) {
+                Log.e("pass", "elo", e);
+
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
+            return pass;
+//            // TODO: attempt authentication against a network service.
+//
+//            try {
+//                // Simulate network access.
+//                Thread.sleep(2000);
+//            } catch (InterruptedException e) {
+//                return false;
+//            }
+//
+//            for (String credential : DUMMY_CREDENTIALS) {
+//                String[] pieces = credential.split(":");
+//                if (pieces[0].equals(mEmail)) {
+//                    // Account exists, return true if the password matches.
+//                    return pieces[1].equals(mPassword);
+//                }
+//            }
+//
+//            // TODO: register the new account here.
+//            return true;
         }
 
         @Override

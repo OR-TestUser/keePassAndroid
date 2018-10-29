@@ -9,6 +9,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -18,10 +19,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
+import java.security.acl.LastOwnerException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -33,32 +37,61 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 
-// https://developer.android.com/training/articles/keystore#javał
+
+// https://developer.android.com/training/articles/keystore#java
 
 
 public class Passport {
+
+    String tag = getClass().getName();
 
     public static final int SALT_BYTE_SIZE = 24;
     public static final int HASH_BYTE_SIZE = 18;
     public static final int PBKDF2_ITERATIONS = 64000;
 
-    String firstHash;
+    boolean pass;
 
     Passport(Context context, String plaintext)
-            throws InvalidKeySpecException, NoSuchAlgorithmException {
+            throws InvalidKeySpecException, NoSuchAlgorithmException,
+            NoSuchProviderException, InvalidAlgorithmParameterException,
+            NoSuchPaddingException, IllegalBlockSizeException, KeyStoreException, IOException,
+            BadPaddingException, CertificateException, InvalidKeyException, UnrecoverableEntryException {
 
-        firstHash = createHash(plaintext);
-        Log.d("firstHash", firstHash);
-        Log.d("shouldBe", " " + verifyPassword("test".toCharArray(), firstHash));
-        testEncryption();
+//        firstHash = createHash(plaintext);
+//        Log.d("firstHash", firstHash);
+//        Log.d("shouldBe", " " + verifyPassword("test".toCharArray(), firstHash));
+//        testEncryption();
 
         if (SPutils.keyStoreSaved(context)){
             // load keystore
+            Log.e(tag, "load keystore");
+
+            HashMap<String, byte[]> map = new HashMap<>();
+            map.put("iv", fromBase64(SPutils.getString(context, "iv")));
+            map.put("encrypted", fromBase64(SPutils.getString(context, "encrypted")));
+
+            final byte[] decryptedBytes = decrypt(map);
+            final String decryptedString = new String(decryptedBytes, "UTF-8");
+            Log.e(tag, "The decrypted string is " + decryptedString);
+//            Log.e(tag, " " + verifyPassword("test".toCharArray(), decryptedString));
+
+            pass = verifyPassword(plaintext.toCharArray(), decryptedString);
         } else {
             //Create store with new password etc...
+            Log.e(tag, "create keystore");
+            createKeyStore(context);
+
+            String hash = createHash(plaintext);
+            final HashMap<String, byte[]> map =  encrypt(hash.getBytes("UTF-8"));
+
+            SPutils.putKeyValue(context, "encrypted", toBase64(map.get("encrypted")));
+            SPutils.putKeyValue(context, "iv", toBase64(map.get("iv")));
+            pass = true;
         }
+    }
 
-
+    public boolean isPass() {
+        return pass;
     }
 
     public static String createHash(String password) throws InvalidKeySpecException, NoSuchAlgorithmException { return createHash(password.toCharArray()); }
@@ -121,23 +154,6 @@ public class Passport {
 
 
     // KeyStore
-
-    public static void Nothing()
-            throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-        KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",
-                KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setRandomizedEncryptionRequired(true)
-                .build();
-
-        keyGenerator.init(keyGenParameterSpec);
-        keyGenerator.generateKey();
-
-    }
-
     private SecretKey getTheKey()
             throws KeyStoreException,NoSuchAlgorithmException,IOException,
             CertificateException, UnrecoverableEntryException {
@@ -172,8 +188,8 @@ public class Passport {
     private byte[] decrypt(final HashMap<String, byte[]> map)
         throws NoSuchPaddingException, NoSuchAlgorithmException,
             IOException, CertificateException, UnrecoverableEntryException,
-            KeyStoreException, IllegalBlockSizeException, InvalidKeyException
-            , InvalidAlgorithmParameterException, BadPaddingException {
+            KeyStoreException, IllegalBlockSizeException, InvalidKeyException,
+            InvalidAlgorithmParameterException, BadPaddingException {
 
         byte[] decryptedBytes = null;
 
@@ -189,30 +205,40 @@ public class Passport {
         return decryptedBytes;
     }
 
+    private void createKeyStore(Context context) throws
+        NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+
+        //Generate a key and store it in the KeyStore
+        final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+        final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",
+                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                //.setUserAuthenticationRequired(true) //requires lock screen, invalidated if lock screen is disabled
+                //.setUserAuthenticationValidityDurationSeconds(120) //only available x seconds from password authentication. -1 requires finger print - every time
+                .setRandomizedEncryptionRequired(true) //different ciphertext for same plaintext on each call
+                .build();
+        keyGenerator.init(keyGenParameterSpec);
+        keyGenerator.generateKey();
+
+        SPutils.keyStoreInit(context);
+    }
+
 
     @TargetApi(Build.VERSION_CODES.M)
-    private void testEncryption()
+    private void testEncryption(Context context)
     {
         try
         {
-            //Generate a key and store it in the KeyStore
-            final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-            final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",
-                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    //.setUserAuthenticationRequired(true) //requires lock screen, invalidated if lock screen is disabled
-                    //.setUserAuthenticationValidityDurationSeconds(120) //only available x seconds from password authentication. -1 requires finger print - every time
-                    .setRandomizedEncryptionRequired(true) //different ciphertext for same plaintext on each call
-                    .build();
-            keyGenerator.init(keyGenParameterSpec);
-            keyGenerator.generateKey();
+            createKeyStore(context);
 
             //Test
             final HashMap<String, byte[]> map = encrypt("My very sensitive string!".getBytes("UTF-8"));
+
+            Log.e(tag, map.toString());
             final byte[] decryptedBytes = decrypt(map);
             final String decryptedString = new String(decryptedBytes, "UTF-8");
-            Log.e("MyApp", "The decrypted string is " + decryptedString);
+            Log.e(tag, "The decrypted string is " + decryptedString);
         }
         catch (Throwable e)
         {

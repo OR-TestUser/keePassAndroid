@@ -30,11 +30,12 @@
         </android.support.design.widget.AppBarLayout>
 
         <EditText
+            android:id="@+id/MSGeditText"
             android:layout_width="match_parent"
-            android:layout_height="133dp"
+            android:layout_height="128dp"
             android:ems="10"
-            android:inputType="textMultiLine"
-            android:importantForAutofill="no" />
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine" />
 
         <Button
             android:id="@+id/saveButton"

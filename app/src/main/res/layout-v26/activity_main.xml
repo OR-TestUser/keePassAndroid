@@ -32,8 +32,9 @@
         <EditText
             android:id="@+id/MSGeditText"
             android:layout_width="match_parent"
-            android:layout_height="128dp"
+            android:layout_height="133dp"
             android:ems="10"
+            android:hint="Put msg here"
             android:importantForAutofill="no"
             android:inputType="textMultiLine" />
 
@@ -42,6 +43,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/save_msg" />
+
+        <EditText
+            android:id="@+id/current_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="current password"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/password_new"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="new password"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/password_new_repeated"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="repeat new password"
+            android:inputType="textPassword" />
+
+        <Button
+            android:id="@+id/password_new_apply"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Apply password change" />
 
     </LinearLayout>
 

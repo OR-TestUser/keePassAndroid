@@ -30,7 +30,10 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -104,22 +107,24 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
+        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
+        mEmailSignInButton.setOnClickListener(view -> attemptLogin());
+
+        Button mClearButton = findViewById(R.id.clear_button);
+        mClearButton.setOnClickListener(view -> {
+//            try {
+//                final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+//                keyStore.deleteEntry("MyKeyAlias");
+//            } catch (KeyStoreException e) {
+//                e.printStackTrace();
+//            }
+            Toast.makeText(this, "All data cleared", Toast.LENGTH_SHORT).show();
+            SPutils.purgeUserLocalStorage(getApplicationContext());
+            mPasswordView.setText("");
         });
 
-        Button mClearButton = (Button) findViewById(R.id.clear_button);
-        mClearButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                SPutils.purgeUserLocalStorage(getApplicationContext());
-                mPasswordView.setText("");
-            }
-        });
+
+
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
@@ -342,10 +347,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             try {
                 Passport passport = new Passport(getApplicationContext(), mPassword);
-                pass = passport.isPass();
+                pass = passport.didPass();
             } catch (Throwable e) {
-                Log.e("pass", "elo", e);
-
+                Log.e("pass", "failed", e);
+                pass = false;
             }
 
             return pass;

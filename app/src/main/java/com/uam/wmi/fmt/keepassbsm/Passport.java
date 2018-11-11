@@ -90,7 +90,7 @@ public class Passport {
         }
     }
 
-    public boolean isPass() {
+    public boolean didPass() {
         return pass;
     }
 
@@ -207,7 +207,6 @@ public class Passport {
 
     private void createKeyStore(Context context) throws
         NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-
         //Generate a key and store it in the KeyStore
         final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
         final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",

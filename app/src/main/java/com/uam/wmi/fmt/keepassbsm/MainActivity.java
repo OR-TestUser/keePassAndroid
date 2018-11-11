@@ -5,19 +5,21 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Cipherator {
 
     String tag = getClass().getName();
-
 
     TextView textView;
 
@@ -25,33 +27,56 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                finish();
-            }
-        });
-
-
-
-
         textView = findViewById(R.id.MSGeditText);
-        Button saveButton =  findViewById(R.id.saveButton);
+        String cipherMSG = SPutils.getString(this, "encryptedMSG");
+        if (cipherMSG == "") {
+            textView.setText("");
+        } else {
+            decryptMsg(cipherMSG);
+        }
 
 
-        saveButton.setOnClickListener(view -> encryptMsg());
+        findViewById(R.id.saveButton).setOnClickListener(view -> encryptMsg(view));
+
+        findViewById(R.id.fab).setOnClickListener(view -> {
+            Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
+            finish();
+        });
     }
 
 
-    private void encryptMsg() {
+    private void encryptMsg(View view) {
+        Toast.makeText(this, "encryptMsg", Toast.LENGTH_SHORT).show();
 
-        String txt = textView.getText().toString();
-        Log.e(tag, txt);
+        String toEncryptString = textView.getText().toString();
+        try {
+            final HashMap<String, byte[]> map = encrypt(toEncryptString.getBytes("UTF-8"));
+            SPutils.putKeyValue(this, "encryptedMSG", toBase64(map.get("encrypted")));
+            SPutils.putKeyValue(this, "ivMSG", toBase64(map.get("iv")));
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
+
+    private void decryptMsg(String cipher) {
+        Toast.makeText(this, "decryptMsg", Toast.LENGTH_SHORT).show();
+
+        HashMap<String, byte[]> map = new HashMap<>();
+        map.put("iv", fromBase64(SPutils.getString(this, "ivMSG")));
+        map.put("encrypted", fromBase64(cipher));
+        try {
+            final byte[] decryptedBytes = decrypt(map);
+            final String decryptedString = new String(decryptedBytes, "UTF-8");
+            textView.setText(decryptedString);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
 }

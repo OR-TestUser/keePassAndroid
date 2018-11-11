@@ -28,6 +28,7 @@ public class SPutils {
         editor.apply();
     }
 
+
     static boolean keyStoreSaved(Context context) {
         SharedPreferences preferences = getSharedPreferences(context);
 

@@ -3,8 +3,13 @@ package com.uam.wmi.fmt.keepassbsm;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -51,13 +56,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
+
+
+
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -69,25 +71,37 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+
+    private void checkSecurity() {
+        KeyguardManager km = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+        if(km.isDeviceSecure()) {
+            AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+            alertDialog.setTitle("Congrats!");
+            alertDialog.setMessage("Your device looks secured");
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Thanks!",
+                    (dialog, which) -> dialog.dismiss());
+            alertDialog.show();
+        } else {
+            AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+            alertDialog.setTitle("Whooops!!");
+            alertDialog.setMessage("Your device isn't secured! Please, set some secure options");
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Fork off!",
+                    (dialog, which) -> dialog.dismiss());
+            alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Will do!",
+                    (dialog, which) -> {
+                        Intent dialogIntent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+                        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(dialogIntent);
+                    });
+            alertDialog.show();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-//        try {
-//            Passport passport = new Passport(getApplicationContext(),"test");
-////            boolean one = passport.checkHashes("test");
-////            boolean three = passport.checkHashes("test2");
-////            boolean two = passport.checkHashes("razdwatrzy");
-////            Log.d("flaga1", String.valueOf(one));
-////            Log.d("flaga2", String.valueOf(two));
-////            Log.d("flaga2*3", String.valueOf(three));
-//
-//
-//        } catch (Throwable e) {
-//            e.printStackTrace();
-//        }
-
+        checkSecurity();
 
         // Hide email text field
         findViewById(R.id.email).setVisibility(View.GONE);
@@ -112,12 +126,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         Button mClearButton = findViewById(R.id.clear_button);
         mClearButton.setOnClickListener(view -> {
-//            try {
-//                final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-//                keyStore.deleteEntry("MyKeyAlias");
-//            } catch (KeyStoreException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+                keyStore.deleteEntry("MyKeyAlias");
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
             Toast.makeText(this, "All data cleared", Toast.LENGTH_SHORT).show();
             SPutils.purgeUserLocalStorage(getApplicationContext());
             mPasswordView.setText("");

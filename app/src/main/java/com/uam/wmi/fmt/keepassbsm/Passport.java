@@ -49,7 +49,7 @@ public class Passport {
     public static final int HASH_BYTE_SIZE = 18;
     public static final int PBKDF2_ITERATIONS = 64000;
 
-    boolean pass;
+    private boolean pass;
 
     Passport(Context context, String plaintext)
             throws InvalidKeySpecException, NoSuchAlgorithmException,
@@ -62,7 +62,7 @@ public class Passport {
 //        Log.d("shouldBe", " " + verifyPassword("test".toCharArray(), firstHash));
 //        testEncryption();
 
-        if (SPutils.keyStoreSaved(context)){
+        if (SPutils.keyStoreSaved(context)) {
             // load keystore
             Log.e(tag, "load keystore");
 
@@ -82,7 +82,7 @@ public class Passport {
             createKeyStore(context);
 
             String hash = createHash(plaintext);
-            final HashMap<String, byte[]> map =  encrypt(hash.getBytes("UTF-8"));
+            final HashMap<String, byte[]> map = encrypt(hash.getBytes("UTF-8"));
 
             SPutils.putKeyValue(context, "encrypted", toBase64(map.get("encrypted")));
             SPutils.putKeyValue(context, "iv", toBase64(map.get("iv")));
@@ -90,13 +90,17 @@ public class Passport {
         }
     }
 
+
     public boolean didPass() {
         return pass;
     }
 
-    public static String createHash(String password) throws InvalidKeySpecException, NoSuchAlgorithmException { return createHash(password.toCharArray()); }
+    public static String createHash(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        return createHash(password.toCharArray());
+    }
+
     public static String createHash(char[] password)
-        throws InvalidKeySpecException, NoSuchAlgorithmException {
+            throws InvalidKeySpecException, NoSuchAlgorithmException {
 
         // Creating a salt
         SecureRandom random = new SecureRandom();
@@ -127,7 +131,7 @@ public class Passport {
     }
 
     public static boolean verifyPassword(char[] password, String correctHash)
-        throws InvalidKeySpecException, NoSuchAlgorithmException {
+            throws InvalidKeySpecException, NoSuchAlgorithmException {
         String[] params = correctHash.split(":");
 
         String algo = params[0];
@@ -155,7 +159,7 @@ public class Passport {
 
     // KeyStore
     private SecretKey getTheKey()
-            throws KeyStoreException,NoSuchAlgorithmException,IOException,
+            throws KeyStoreException, NoSuchAlgorithmException, IOException,
             CertificateException, UnrecoverableEntryException {
 
         final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -186,7 +190,7 @@ public class Passport {
     }
 
     private byte[] decrypt(final HashMap<String, byte[]> map)
-        throws NoSuchPaddingException, NoSuchAlgorithmException,
+            throws NoSuchPaddingException, NoSuchAlgorithmException,
             IOException, CertificateException, UnrecoverableEntryException,
             KeyStoreException, IllegalBlockSizeException, InvalidKeyException,
             InvalidAlgorithmParameterException, BadPaddingException {
@@ -206,7 +210,7 @@ public class Passport {
     }
 
     private void createKeyStore(Context context) throws
-        NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         //Generate a key and store it in the KeyStore
         final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
         final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",
@@ -225,10 +229,8 @@ public class Passport {
 
 
     @TargetApi(Build.VERSION_CODES.M)
-    private void testEncryption(Context context)
-    {
-        try
-        {
+    private void testEncryption(Context context) {
+        try {
             createKeyStore(context);
 
             //Test
@@ -238,9 +240,7 @@ public class Passport {
             final byte[] decryptedBytes = decrypt(map);
             final String decryptedString = new String(decryptedBytes, "UTF-8");
             Log.e(tag, "The decrypted string is " + decryptedString);
-        }
-        catch (Throwable e)
-        {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }

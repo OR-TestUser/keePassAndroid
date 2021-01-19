@@ -165,7 +165,17 @@ public class Passport {
         final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry("MyKeyAlias", null);
-        final SecretKey secretKey = secretKeyEntry.getSecretKey();
+        /* ********OpenRefactory Warning********
+		 Possible null pointer Dereference!
+		 Path: 
+			File: Passport.java, Line: 167
+				final KeyStore.SecretKeyEntry secretKeyEntry=(KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias",null);
+				Variable secretKeyEntry is assigned from a library method call which may return null.
+			File: Passport.java, Line: 168
+				final SecretKey secretKey=secretKeyEntry.getSecretKey();
+				secretKeyEntry is referenced in method invocation.
+		*/
+		final SecretKey secretKey = secretKeyEntry.getSecretKey();
 
         return secretKey;
     }
